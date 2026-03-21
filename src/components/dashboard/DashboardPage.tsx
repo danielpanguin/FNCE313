@@ -14,7 +14,6 @@ import ReserveCompositionPanel from "./ReserveCompositionPanel";
 import MetricsCards from "./MetricsCards";
 
 const TreasuryYieldChart = dynamic(() => import("./TreasuryYieldChart"), { ssr: false });
-const ReserveCompositionChart = dynamic(() => import("./ReserveCompositionChart"), { ssr: false });
 const StablecoinMarketCapChart = dynamic(() => import("./StablecoinMarketCapChart"), { ssr: false });
 
 export default function DashboardPage() {
@@ -57,10 +56,7 @@ export default function DashboardPage() {
             onScenariosChange={setScenarios}
             onActiveChange={setActiveScenarioId}
           />
-          <div className="space-y-6">
-            <ReserveCompositionPanel reserves={reserves} onChange={handleReserveChange} />
-            <ReserveCompositionChart reserves={reserves} />
-          </div>
+          <ReserveCompositionPanel reserves={reserves} onChange={handleReserveChange} />
         </div>
 
         {/* KPI Cards */}
