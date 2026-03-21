@@ -15,6 +15,7 @@ import MetricsCards from "./MetricsCards";
 
 const TreasuryYieldChart = dynamic(() => import("./TreasuryYieldChart"), { ssr: false });
 const ReserveCompositionChart = dynamic(() => import("./ReserveCompositionChart"), { ssr: false });
+const StablecoinMarketCapChart = dynamic(() => import("./StablecoinMarketCapChart"), { ssr: false });
 
 export default function DashboardPage() {
   const [scenarios, setScenarios] = useState<Scenario[]>(DEFAULT_SCENARIOS);
@@ -65,7 +66,10 @@ export default function DashboardPage() {
         {/* KPI Cards */}
         <MetricsCards metrics={activeMetrics} />
 
-        {/* Chart */}
+        {/* Stablecoin Market Cap */}
+        <StablecoinMarketCapChart />
+
+        {/* Treasury Yields */}
         <TreasuryYieldChart />
       </main>
     </div>

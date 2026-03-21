@@ -102,8 +102,11 @@ export default function TreasuryYieldChart() {
               domain={["auto", "auto"]}
             />
             <Tooltip
-              formatter={(v: unknown, name: string) => [`${Number(v).toFixed(3)}%`, SECURITY_SHORT[name] ?? name]}
-              labelFormatter={fmtDate}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              formatter={((v: unknown, name: unknown) =>
+                [`${Number(v).toFixed(3)}%`, SECURITY_SHORT[String(name ?? "")] ?? String(name ?? "")]) as any}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              labelFormatter={((label: unknown) => fmtDate(String(label))) as any}
               contentStyle={{ fontSize: 12 }}
             />
             <Legend
