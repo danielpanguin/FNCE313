@@ -8,7 +8,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 import {
@@ -108,10 +107,6 @@ export default function TreasuryYieldChart() {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               labelFormatter={((label: unknown) => fmtDate(String(label))) as any}
               contentStyle={{ fontSize: 12 }}
-            />
-            <Legend
-              formatter={(value) => SECURITY_SHORT[value] ?? value}
-              wrapperStyle={{ fontSize: 12 }}
             />
             {TRACKED_SECURITIES.map((sec) => (
               <Line

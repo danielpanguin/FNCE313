@@ -13,25 +13,14 @@ export interface TreasuryApiResponse {
 }
 
 // Securities we care about
-export const TRACKED_SECURITIES = [
-  "Treasury Bills",
-  "Treasury Notes",
-  "Treasury Bonds",
-  "Treasury Inflation-Protected Securities (TIPS)",
-];
+export const TRACKED_SECURITIES = ["Treasury Bills"];
 
 export const SECURITY_COLORS: Record<string, string> = {
   "Treasury Bills": "#3B82F6",
-  "Treasury Notes": "#10B981",
-  "Treasury Bonds": "#F59E0B",
-  "Treasury Inflation-Protected Securities (TIPS)": "#8B5CF6",
 };
 
 export const SECURITY_SHORT: Record<string, string> = {
   "Treasury Bills": "T-Bills",
-  "Treasury Notes": "T-Notes",
-  "Treasury Bonds": "T-Bonds",
-  "Treasury Inflation-Protected Securities (TIPS)": "TIPS",
 };
 
 export interface YieldDataPoint {

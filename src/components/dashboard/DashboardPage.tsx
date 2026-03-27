@@ -1,17 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
-import type { Scenario, ReserveComposition } from "@/types/dashboard";
-import {
-  DEFAULT_SCENARIOS,
-  DEFAULT_RESERVES,
-  computeMetrics,
-  redistributeReserves,
-} from "@/lib/calculations";
+import type { Scenario } from "@/types/dashboard";
+import { DEFAULT_SCENARIOS, DEFAULT_RESERVES } from "@/lib/calculations";
 import StablecoinInputPanel from "./StablecoinInputPanel";
 import ReserveCompositionPanel from "./ReserveCompositionPanel";
-import MetricsCards from "./MetricsCards";
 
 const TreasuryYieldChart = dynamic(() => import("./TreasuryYieldChart"), { ssr: false });
 const StablecoinMarketCapChart = dynamic(() => import("./StablecoinMarketCapChart"), { ssr: false });
@@ -19,20 +13,10 @@ const StablecoinMarketCapChart = dynamic(() => import("./StablecoinMarketCapChar
 export default function DashboardPage() {
   const [scenarios, setScenarios] = useState<Scenario[]>(DEFAULT_SCENARIOS);
   const [activeScenarioId, setActiveScenarioId] = useState<string>("base");
-  const [reserves, setReserves] = useState<ReserveComposition>(DEFAULT_RESERVES);
+  const [reserves, setReserves] = useState(DEFAULT_RESERVES);
 
-  const activeScenario = useMemo(
-    () => scenarios.find((s) => s.id === activeScenarioId) ?? scenarios[0],
-    [scenarios, activeScenarioId]
-  );
-
-  const activeMetrics = useMemo(
-    () => computeMetrics(activeScenario, reserves),
-    [activeScenario, reserves]
-  );
-
-  function handleReserveChange(field: keyof ReserveComposition, value: number) {
-    setReserves((prev) => redistributeReserves(prev, field, value));
+  function handleReserveChange(value: number) {
+    setReserves({ treasuryPct: Math.min(100, Math.max(0, value)) });
   }
 
   return (
@@ -48,6 +32,12 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Charts */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <StablecoinMarketCapChart />
+          <TreasuryYieldChart />
+        </div>
+
         {/* Inputs */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <StablecoinInputPanel
@@ -58,15 +48,6 @@ export default function DashboardPage() {
           />
           <ReserveCompositionPanel reserves={reserves} onChange={handleReserveChange} />
         </div>
-
-        {/* KPI Cards */}
-        <MetricsCards metrics={activeMetrics} />
-
-        {/* Stablecoin Market Cap */}
-        <StablecoinMarketCapChart />
-
-        {/* Treasury Yields */}
-        <TreasuryYieldChart />
       </main>
     </div>
   );

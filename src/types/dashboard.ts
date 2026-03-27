@@ -1,8 +1,5 @@
 export interface ReserveComposition {
-  treasuries: number;
-  cash: number;
-  corporateBonds: number;
-  other: number;
+  treasuryPct: number;
 }
 
 export interface Scenario {
@@ -15,8 +12,5 @@ export interface ScenarioMetrics {
   scenarioLabel: string;
   marketCapBillions: number;
   treasuryDemandBillions: number;
-  cashHoldingsBillions: number;
-  corpBondsBillions: number;
-  otherBillions: number;
   treasuryDemandAsShareOfMarket: number;
 }
