@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import {
   fetchFiatBackedUSDHistory,
+  getLatestTotalBillions,
   formatMarketCap,
   fmtDateFromUnix,
   type StablecoinDataPoint,
@@ -25,7 +26,11 @@ const RANGES = [
   { label: "All", days: Infinity },
 ];
 
-export default function StablecoinMarketCapChart() {
+interface Props {
+  onLatestValue?: (valueBillions: number) => void;
+}
+
+export default function StablecoinMarketCapChart({ onLatestValue }: Props) {
   const [allData, setAllData] = useState<StablecoinDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +38,10 @@ export default function StablecoinMarketCapChart() {
 
   useEffect(() => {
     fetchFiatBackedUSDHistory()
-      .then(setAllData)
+      .then((data) => {
+        setAllData(data);
+        onLatestValue?.(getLatestTotalBillions(data));
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);

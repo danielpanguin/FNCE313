@@ -6,7 +6,6 @@ export const DEFAULT_SCENARIOS: Scenario[] = [
   { id: "bear", label: "Bear", marketCapBillions: 100 },
   { id: "base", label: "Base", marketCapBillions: 300 },
   { id: "bull", label: "Bull", marketCapBillions: 500 },
-  { id: "ultra", label: "Ultra Bull", marketCapBillions: 1000 },
 ];
 
 export const DEFAULT_RESERVES: ReserveComposition = {

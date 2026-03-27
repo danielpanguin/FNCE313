@@ -39,7 +39,7 @@ export function computeShortRun(inputs: ShortRunInputs): ShortRunResult {
 
 const BETA_13W = -2.9858;
 const LAMBDA = 50;
-const R_BASELINE = 0.72;
+const R_BASELINE = 0.79;
 
 export const S_OLD_DEFAULT = 272; // $272B — combined USDT+USDC baseline (late 2025)
 

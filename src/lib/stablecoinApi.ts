@@ -38,6 +38,11 @@ export async function fetchFiatBackedUSDHistory(): Promise<StablecoinDataPoint[]
     .sort((a, b) => a.date - b.date);
 }
 
+export function getLatestTotalBillions(data: StablecoinDataPoint[]): number {
+  if (data.length === 0) return 0;
+  return data[data.length - 1].totalUSD / 1e9;
+}
+
 export function formatMarketCap(value: number): string {
   if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
   if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
