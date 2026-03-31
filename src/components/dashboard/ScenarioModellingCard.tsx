@@ -132,9 +132,6 @@ function ReservePanel({
           onChange={(e) => onChange(parseFloat(e.target.value))}
           className="w-full cursor-pointer accent-blue-600"
         />
-        <p className="text-xs text-gray-400">
-          Historical baseline: 60% · GENIUS Act: ~80%
-        </p>
       </div>
     </div>
   );
