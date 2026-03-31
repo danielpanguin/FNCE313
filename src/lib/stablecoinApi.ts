@@ -4,38 +4,9 @@ export interface StablecoinDataPoint {
 }
 
 export async function fetchFiatBackedUSDHistory(): Promise<StablecoinDataPoint[]> {
-  // Step 1 - get fiat-backed USD stablecoin IDs
-  const { peggedAssets } = await fetch(
-    "https://stablecoins.llama.fi/stablecoins?includePrices=true"
-  ).then((r) => r.json());
-
-  const filteredIds: string[] = peggedAssets
-    .filter(
-      (s: { pegType: string; pegMechanism: string }) =>
-        s.pegType === "peggedUSD" && s.pegMechanism === "fiat-backed"
-    )
-    .map((s: { id: string }) => s.id);
-
-  // Step 2 - fetch historical supply for each
-  const histories = await Promise.all(
-    filteredIds.map((id) =>
-      fetch(`https://stablecoins.llama.fi/stablecoin/${id}`).then((r) => r.json())
-    )
-  );
-
-  // Step 3 - sum by date
-  const dailyTotals: Record<number, number> = {};
-  for (const coin of histories) {
-    for (const entry of coin.tokens ?? []) {
-      const date: number = entry.date;
-      const supply: number = entry.circulating?.peggedUSD ?? 0;
-      dailyTotals[date] = (dailyTotals[date] ?? 0) + supply;
-    }
-  }
-
-  return Object.entries(dailyTotals)
-    .map(([date, totalUSD]) => ({ date: Number(date), totalUSD }))
-    .sort((a, b) => a.date - b.date);
+  const res = await fetch("/api/stablecoins");
+  if (!res.ok) throw new Error(`Stablecoin API error: ${res.status}`);
+  return res.json();
 }
 
 export function getLatestTotalBillions(data: StablecoinDataPoint[]): number {
