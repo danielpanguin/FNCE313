@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FNCE313",
-  description: "FNCE313",
+  title: "StableFiscal — Treasury Impact Intelligence",
+  description: "Stablecoin-driven US Treasury demand analytics",
 };
 
 export default function RootLayout({
