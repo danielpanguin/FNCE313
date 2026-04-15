@@ -163,7 +163,7 @@ export default function YieldPolicyPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `$${(v/1000).toFixed(1)}T` : `$${v}B`} width={60} />
-                <Tooltip formatter={(v: number) => v >= 1000 ? `$${(v/1000).toFixed(2)}T` : `$${v}B`} contentStyle={{ fontSize: 12 }} />
+                <Tooltip formatter={(v: unknown) => { const n = Number(v); return n >= 1000 ? `$${(n/1000).toFixed(2)}T` : `$${n}B`; }} contentStyle={{ fontSize: 12 }} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Line type="monotone" dataKey="baseline" name="No Yield"        stroke="#cbd5e1" strokeDasharray="5 5" strokeWidth={2} dot={{ r: 4 }} />
                 <Line type="monotone" dataKey="policy"   name={PRESETS[preset]?.label ?? "Policy"} stroke="#7c3aed" strokeWidth={2} dot={{ r: 4 }} />

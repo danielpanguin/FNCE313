@@ -75,7 +75,7 @@ export default function BuyerLandscapePage() {
             <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" horizontal={false} />
             <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `$${(v/1000).toFixed(1)}T` : `$${v}B`} />
             <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={140} />
-            <Tooltip formatter={(v: number) => v >= 1000 ? `$${(v/1000).toFixed(2)}T` : `$${v}B`} contentStyle={{ fontSize: 12 }} />
+            <Tooltip formatter={(v: unknown) => { const n = Number(v); return n >= 1000 ? `$${(n/1000).toFixed(2)}T` : `$${n}B`; }} contentStyle={{ fontSize: 12 }} />
             {chartData.map((_, i) => (
               <Cell key={i} fill={
                 i === chartData.length - 1 ? "rgba(59,130,246,0.55)" :

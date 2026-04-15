@@ -167,7 +167,7 @@ export default function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `$${(v/1000).toFixed(1)}T` : `$${v}B`} width={60} />
-                <Tooltip formatter={(v: number) => v >= 1000 ? `$${(v/1000).toFixed(2)}T` : `$${v.toFixed(0)}B`} contentStyle={{ fontSize: 12 }} />
+                <Tooltip formatter={(v: unknown) => { const n = Number(v); return n >= 1000 ? `$${(n/1000).toFixed(2)}T` : `$${n.toFixed(0)}B`; }} contentStyle={{ fontSize: 12 }} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Line type="monotone" dataKey="mc"     name="Market Cap"         stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
                 <Line type="monotone" dataKey="demand" name="Eff. T-Bill Demand" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} />
