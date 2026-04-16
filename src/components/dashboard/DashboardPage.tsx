@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Card from "@/components/ui/Card";
+import ParamTooltip from "@/components/ui/ParamTooltip";
 import {
   computeOverview,
   computeGrowthTrajectory,
@@ -21,6 +22,7 @@ const TreasuryYieldChart       = dynamic(() => import("./TreasuryYieldChart"),  
 const StablecoinMarketCapChart = dynamic(() => import("./StablecoinMarketCapChart"),  { ssr: false });
 
 const NET_NEW_TBILL_FALLBACK = 433; // $B/yr fallback (TBAC Q1 2026)
+
 
 function StatCard({
   label, value, sub, accent = "bg-blue-50", valueColor = "text-gray-900",
@@ -85,30 +87,41 @@ export default function DashboardPage() {
                         { label: "Minor Buyer",      color: "bg-gray-100 text-gray-600"  };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Live data charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <StablecoinMarketCapChart onLatestValue={setLiveMarketCapBillions} />
-        <TreasuryYieldChart />
-      </div>
+    <div className="p-6 space-y-8">
+      {/* ── Market Data ─────────────────────────────── */}
+      <section>
+        <h2 className="text-xl font-bold text-gray-900">Market Data</h2>
+        <p className="text-sm text-gray-500 mt-0.5 mb-4">Live stablecoin market cap and US Treasury bill yields</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <StablecoinMarketCapChart onLatestValue={setLiveMarketCapBillions} />
+          <TreasuryYieldChart />
+        </div>
+      </section>
 
-      {/* Stat cards — below live charts */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ── Key Metrics ─────────────────────────────── */}
+      <section>
+        <h2 className="text-xl font-bold text-gray-900">Key Metrics</h2>
+        <p className="text-sm text-gray-500 mt-0.5 mb-4">Projected T-bill demand, yield impact, and annual savings at the configured scenario</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Stablecoin Market Cap"    value={liveMarketCapBillions ? `$${liveMarketCapBillions.toFixed(1)}B` : "Loading…"}  sub={liveMarketCapBillions ? "Live · DeFi Llama" : "Fetching…"} />
         <StatCard label="Effective T-Bill Demand"  value={formatBillions(overview.effectiveDemand)}               sub={`At $${cfg.projectedMC >= 1000 ? (cfg.projectedMC/1000).toFixed(1)+"T" : cfg.projectedMC+"B"} projected MC`} accent="bg-emerald-50" />
         <StatCard label="Projected Yield Impact"   value={`${overview.deltaY >= 0 ? "+" : ""}${overview.deltaY.toFixed(1)} bps`} sub="13-week T-bill" accent="bg-amber-50" valueColor={overview.deltaY < 0 ? "text-emerald-600" : "text-red-600"} />
         <StatCard label="Est. Annual Savings"      value={`$${overview.annualSavings.toFixed(1)}B/yr`}             sub={fredTbillDate ? `At $${tbillOut.toFixed(0)}B outstanding · FRED` : "At $6T outstanding"} accent="bg-violet-50" />
-      </div>
+        </div>
+      </section>
 
-      {/* Overview config + growth trajectory */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* ── Scenario Analysis ───────────────────────── */}
+      <section>
+        <h2 className="text-xl font-bold text-gray-900">Long Run Scenario Analysis</h2>
+        <p className="text-sm text-gray-500 mt-0.5 mb-4">Configure reserve composition and projection horizon to model structural yield compression</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Config panel */}
         <Card title="Scenario Configuration">
           <div className="space-y-5">
             {/* Projected MC */}
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-xs text-gray-600">Projected Market Cap</span>
+                <span className="text-xs text-gray-600 inline-flex items-center">Projected Market Cap<ParamTooltip text="Total USD stablecoin market cap at the end of the horizon. Drives effective T-bill demand and long-run yield compression." /></span>
                 <span className="text-xs font-mono font-semibold text-blue-600">
                   ${cfg.projectedMC >= 1000 ? (cfg.projectedMC / 1000).toFixed(1) + "T" : cfg.projectedMC + "B"}
                 </span>
@@ -134,12 +147,12 @@ export default function DashboardPage() {
             </div>
 
             {[
-              { label: "Direct T-Bill Reserve", key: "direct" as const, val: cfg.directPct },
-              { label: "Indirect T-Linked",     key: "indirect" as const, val: cfg.indirectPct },
-            ].map(({ label, key, val }) => (
+              { label: "Direct T-Bill Reserve", tooltip: "Share of reserves held directly in Treasury bills, as mandated under GENIUS Act §4(a). Counts 1-for-1 toward effective T-bill demand.", key: "direct" as const, val: cfg.directPct },
+              { label: "Indirect T-Linked",     tooltip: "Share held in instruments with T-bill exposure (e.g. money market funds, repo). Subject to the look-through discount below.", key: "indirect" as const, val: cfg.indirectPct },
+            ].map(({ label, tooltip, key, val }) => (
               <div key={key}>
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs text-gray-600">{label}</span>
+                  <span className="text-xs text-gray-600 inline-flex items-center">{label}<ParamTooltip text={tooltip} /></span>
                   <span className="text-xs font-mono font-semibold text-blue-600">{val}%</span>
                 </div>
                 <input type="range" min={0} max={100} step={1} value={val}
@@ -150,7 +163,7 @@ export default function DashboardPage() {
 
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-xs text-gray-600">Look-Through Rate</span>
+                <span className="text-xs text-gray-600 inline-flex items-center">Look-Through Rate<ParamTooltip text="Fraction of indirect T-linked holdings that translate into actual T-bill demand. 80% means $0.80 of every $1 in indirect reserves reaches the T-bill market." /></span>
                 <span className="text-xs font-mono font-semibold text-blue-600">{cfg.lookThrough}%</span>
               </div>
               <input type="range" min={40} max={100} step={5} value={cfg.lookThrough}
@@ -159,7 +172,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-xs text-gray-600">Projection Horizon</span>
+                <span className="text-xs text-gray-600 inline-flex items-center">Projection Horizon<ParamTooltip text="Number of years over which market cap growth is projected. Affects CAGR calculation, net new T-bill supply, and marginal buyer analysis." /></span>
                 <span className="text-xs font-mono font-semibold text-blue-600">{cfg.horizonYears}yr</span>
               </div>
               <input type="range" min={1} max={10} step={1} value={cfg.horizonYears}
@@ -187,11 +200,14 @@ export default function DashboardPage() {
             </div>
           </Card>
         </div>
-      </div>
+        </div>
+      </section>
 
-
-      {/* Marginal buyer analysis */}
-      <Card title="Marginal Buyer Analysis">
+      {/* ── Marginal Buyer Analysis ─────────────────── */}
+      <section>
+        <h2 className="text-xl font-bold text-gray-900">Marginal Buyer Analysis</h2>
+        <p className="text-sm text-gray-500 mt-0.5 mb-4">Stablecoin incremental T-bill demand relative to estimated net new supply over the projection horizon</p>
+        <Card title="Marginal Buyer Analysis">
         <div className="flex items-center gap-3 mb-3">
           <p className="text-xs text-gray-400 flex-1">
             Incremental T-bill demand vs estimated net new supply over projection horizon.
@@ -237,58 +253,8 @@ export default function DashboardPage() {
             }
           </p>
         )}
-      </Card>
-
-      {/* Model Reference */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card title="Long-Run Structural Model">
-          <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 font-mono text-xs text-blue-600 mb-4">
-            <p className="text-[10px] text-gray-400 font-sans mb-1">Ahmed &amp; Aldasoro — BIS WP 1270 (2025)</p>
-            ΔY = 100 × β × ln(S_new / S₀) × (1/λ) × (r / 0.72)
-          </div>
-          <div className="space-y-1.5">
-            {[
-              ["β (13-week)",   "−2.9858",       "text-emerald-700"],
-              ["S₀ (baseline)", "$300.8B",        "text-gray-700"],
-              ["λ (attenuation)", "50",           "text-gray-700"],
-              ["r_baseline",    "0.72 (72%)",     "text-gray-700"],
-              ["Effect horizon","≤ 13 weeks",     "text-gray-700"],
-            ].map(([k, v, c]) => (
-              <div key={k as string} className="flex justify-between text-xs">
-                <span className="text-gray-500">{k}</span>
-                <span className={`font-mono font-semibold ${c}`}>{v}</span>
-              </div>
-            ))}
-          </div>
-          <p className="mt-3 text-[10px] text-gray-400 leading-relaxed border-t border-gray-100 pt-2">
-            Captures a permanent yield shift. Log specification gives diminishing returns — each doubling of market cap adds the same bps compression.
-          </p>
         </Card>
-
-        <Card title="Short-Run Flow Model">
-          <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 font-mono text-xs text-blue-600 mb-4">
-            <p className="text-[10px] text-gray-400 font-sans mb-1">Ahmed &amp; Aldasoro — BIS WP 1270 (2025)</p>
-            ΔY = α × Flow × (T_ref / T_exec) × (r / 0.60)
-          </div>
-          <div className="space-y-1.5">
-            {[
-              ["α Normal",    "0.714 bps/$1B",  "text-emerald-600"],
-              ["α Scarcity",  "1.429 bps/$1B",  "text-amber-600"],
-              ["α Crisis",    "2.143 bps/$1B",  "text-red-600"],
-              ["T_ref",       "5 days",         "text-gray-700"],
-              ["r_embedded",  "0.60 (60%)",     "text-gray-700"],
-            ].map(([k, v, c]) => (
-              <div key={k as string} className="flex justify-between text-xs">
-                <span className="text-gray-500">{k}</span>
-                <span className={`font-mono font-semibold ${c}`}>{v}</span>
-              </div>
-            ))}
-          </div>
-          <p className="mt-3 text-[10px] text-gray-400 leading-relaxed border-t border-gray-100 pt-2">
-            Short-lived effect — fades after execution. Positive ΔY = yields rise (sell pressure). SVB precedent: $3.3B shock → tens of bps spike.
-          </p>
-        </Card>
-      </div>
+      </section>
     </div>
   );
 }

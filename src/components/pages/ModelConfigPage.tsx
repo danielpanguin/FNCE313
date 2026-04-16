@@ -165,6 +165,10 @@ export default function ModelConfigPage() {
                 ["White House CEA (Apr 8, 2026)",            "$531B lending protected estimate",                 "Apr 2026"],
                 ["American Bankers Association (ABA)",       "$6.6T deposit flight worst-case",                  "2025"],
                 ["Tether 2024 Annual Report",                "$13B net profit on ~$113B reserves",               "2025"],
+                ["FRED — DTB3",                             "Live 3-month T-bill secondary market rate (%)",    "Live API"],
+                ["FRED — WMTSNS",                           "Live T-bills outstanding ($M) + YoY net new supply","Live API"],
+                ["FRED — WRMFNS",                           "Live retail money market fund total assets ($B)",  "Live API"],
+                ["FRED — RRPONTSYD",                        "Live overnight reverse repo (RRP) balance ($B)",   "Live API"],
               ].map(([src, data, date], i) => (
                 <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
                   <td className="py-2.5 px-3 text-gray-700 font-medium">{src}</td>

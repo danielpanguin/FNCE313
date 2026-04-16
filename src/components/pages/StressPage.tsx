@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { fetchFredLatest, FRED_SERIES } from "@/lib/fredApi";
 import dynamic from "next/dynamic";
 import Card from "@/components/ui/Card";
+import ParamTooltip from "@/components/ui/ParamTooltip";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
@@ -69,7 +70,7 @@ export default function StressPage() {
               {/* MC */}
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs text-gray-600">Market Cap at Shock</span>
+                  <span className="text-xs text-gray-600 inline-flex items-center">Market Cap at Shock<ParamTooltip text="Total stablecoin market cap at the moment the redemption shock occurs. A larger market means a proportionally larger absolute outflow for the same percentage shock." /></span>
                   <span className="text-xs font-mono font-semibold text-blue-600">
                     ${mc >= 1000 ? (mc / 1000).toFixed(1) + "T" : mc + "B"}
                   </span>
@@ -81,7 +82,7 @@ export default function StressPage() {
               {/* Exec days */}
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs text-gray-600">Execution Speed</span>
+                  <span className="text-xs text-gray-600 inline-flex items-center">Execution Speed<ParamTooltip text="How quickly issuers liquidate T-bill reserves to meet redemptions. Faster execution (fewer days) amplifies yield impact — the urgency factor T_ref/T_exec is capped at 5×." /></span>
                   <span className="text-xs font-mono font-semibold text-blue-600">{execDays} day{execDays !== 1 ? "s" : ""}</span>
                 </div>
                 <input type="range" min={1} max={20} step={1} value={execDays}
@@ -94,7 +95,7 @@ export default function StressPage() {
               {/* Reserve */}
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs text-gray-600">T-Bill Reserve Share</span>
+                  <span className="text-xs text-gray-600 inline-flex items-center">T-Bill Reserve Share<ParamTooltip text="Percentage of stablecoin reserves held in T-bills. Higher share means more T-bills must be sold under stress, increasing yield impact. Baseline is 60% (2021–2025 average)." /></span>
                   <span className="text-xs font-mono font-semibold text-blue-600">{reservePct}%</span>
                 </div>
                 <input type="range" min={40} max={100} step={5} value={reservePct}

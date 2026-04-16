@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { fetchFredLatest, FRED_SERIES } from "@/lib/fredApi";
+import ParamTooltip from "@/components/ui/ParamTooltip";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ResponsiveContainer } from "recharts";
 import Card from "@/components/ui/Card";
 import { BASELINE_MC } from "@/lib/calculations";
@@ -78,7 +79,7 @@ export default function BuyerLandscapePage() {
         )}
         <div className="mb-4">
           <div className="flex justify-between mb-1">
-            <span className="text-xs text-gray-600">Stablecoin Projected Market Cap</span>
+            <span className="text-xs text-gray-600 inline-flex items-center">Stablecoin Projected Market Cap<ParamTooltip text="Projected total USD stablecoin market cap. Scales the stablecoin T-bill demand bar relative to other buyers. ~79% of market cap flows into T-bill reserves under GENIUS Act mandates." /></span>
             <span className="text-xs font-mono font-semibold text-blue-600">
               ${projectedMC >= 1000 ? (projectedMC / 1000).toFixed(1) + "T" : projectedMC + "B"}
             </span>

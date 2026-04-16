@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { fetchFredLatest, FRED_SERIES } from "@/lib/fredApi";
+import ParamTooltip from "@/components/ui/ParamTooltip";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Card from "@/components/ui/Card";
 import { computeOverview, BASELINE_MC, DEFAULT_OVERVIEW } from "@/lib/calculations";
@@ -99,7 +100,7 @@ export default function YieldPolicyPage() {
             <div className="space-y-5">
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs text-gray-600">Yield to Holders</span>
+                  <span className="text-xs text-gray-600 inline-flex items-center">Yield to Holders<ParamTooltip text="Annual yield passed through to stablecoin holders as a percentage. Currently prohibited under GENIUS Act §4(c). Reduces issuer revenue but may accelerate adoption." /></span>
                   <span className="text-xs font-mono font-semibold text-violet-600">{yieldPct.toFixed(2)}%</span>
                 </div>
                 <input type="range" min={0} max={400} step={10} value={yieldBps}
@@ -108,7 +109,7 @@ export default function YieldPolicyPage() {
               </div>
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs text-gray-600">Adoption Multiplier</span>
+                  <span className="text-xs text-gray-600 inline-flex items-center">Adoption Multiplier<ParamTooltip text="How much yield pass-through increases total market cap relative to the no-yield baseline. 1.42× is the Standard Chartered estimate for full pass-through to $500B." /></span>
                   <span className="text-xs font-mono font-semibold text-violet-600">{adoptionMult.toFixed(2)}×</span>
                 </div>
                 <input type="range" min={100} max={350} step={5} value={Math.round(adoptionMult * 100)}
@@ -122,7 +123,7 @@ export default function YieldPolicyPage() {
               <hr className="border-gray-100" />
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs text-gray-600">Projected Market Cap</span>
+                  <span className="text-xs text-gray-600 inline-flex items-center">Projected Market Cap<ParamTooltip text="Baseline stablecoin market cap before applying the adoption multiplier. The policy scenario market cap equals this value times the multiplier." /></span>
                   <span className="text-xs font-mono font-semibold text-blue-600">
                     ${cfg.projectedMC >= 1000 ? (cfg.projectedMC / 1000).toFixed(1) + "T" : cfg.projectedMC + "B"}
                   </span>
@@ -133,7 +134,7 @@ export default function YieldPolicyPage() {
               </div>
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs text-gray-600">Horizon</span>
+                  <span className="text-xs text-gray-600 inline-flex items-center">Horizon<ParamTooltip text="Projection horizon in years. Used to compute the CAGR path from current market cap to the projected target." /></span>
                   <span className="text-xs font-mono font-semibold text-blue-600">{cfg.horizonYears}yr</span>
                 </div>
                 <input type="range" min={1} max={10} step={1} value={cfg.horizonYears}
