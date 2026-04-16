@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import ScenarioModellingCard from "./ScenarioModellingCard";
 import Card from "@/components/ui/Card";
 import {
   computeOverview,
@@ -13,14 +12,13 @@ import {
 } from "@/lib/calculations";
 import type { OverviewConfig } from "@/types/dashboard";
 import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 
 const TreasuryYieldChart       = dynamic(() => import("./TreasuryYieldChart"),       { ssr: false });
 const StablecoinMarketCapChart = dynamic(() => import("./StablecoinMarketCapChart"),  { ssr: false });
 
-const LIVE_MC = 300.8;
 const NET_NEW_TBILL_PER_YR = 433; // $B/yr (TBAC Q1 2026)
 
 function StatCard({
@@ -67,18 +65,18 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Stat cards */}
+      {/* Live data charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <StablecoinMarketCapChart onLatestValue={setLiveMarketCapBillions} />
+        <TreasuryYieldChart />
+      </div>
+
+      {/* Stat cards — below live charts */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Stablecoin Market Cap"    value={liveMarketCapBillions ? `$${liveMarketCapBillions.toFixed(1)}B` : "Loading…"}  sub={liveMarketCapBillions ? "Live · DeFi Llama" : "Fetching…"} />
         <StatCard label="Effective T-Bill Demand"  value={formatBillions(overview.effectiveDemand)}               sub={`At $${cfg.projectedMC >= 1000 ? (cfg.projectedMC/1000).toFixed(1)+"T" : cfg.projectedMC+"B"} projected MC`} accent="bg-emerald-50" />
         <StatCard label="Projected Yield Impact"   value={`${overview.deltaY >= 0 ? "+" : ""}${overview.deltaY.toFixed(1)} bps`} sub="13-week T-bill" accent="bg-amber-50" valueColor={overview.deltaY < 0 ? "text-emerald-600" : "text-red-600"} />
         <StatCard label="Est. Annual Savings"      value={`$${overview.annualSavings.toFixed(1)}B/yr`}             sub="At $6T outstanding" accent="bg-violet-50" />
-      </div>
-
-      {/* Live data charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <StablecoinMarketCapChart onLatestValue={setLiveMarketCapBillions} />
-        <TreasuryYieldChart />
       </div>
 
       {/* Overview config + growth trajectory */}
@@ -140,15 +138,6 @@ export default function DashboardPage() {
             </div>
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-xs text-gray-600">Attenuation λ</span>
-                <span className="text-xs font-mono font-semibold text-blue-600">{cfg.lambda}</span>
-              </div>
-              <input type="range" min={15} max={120} step={5} value={cfg.lambda}
-                onChange={(e) => setCfg((c) => ({ ...c, lambda: Number(e.target.value) }))}
-                className="w-full accent-blue-600 cursor-pointer" />
-            </div>
-            <div>
-              <div className="flex justify-between mb-1">
                 <span className="text-xs text-gray-600">Projection Horizon</span>
                 <span className="text-xs font-mono font-semibold text-blue-600">{cfg.horizonYears}yr</span>
               </div>
@@ -159,30 +148,33 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* Growth trajectory */}
-        <div className="lg:col-span-2">
-          <Card title="Growth Trajectory">
-            <ResponsiveContainer width="100%" height={320}>
-              <LineChart data={growth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `$${(v/1000).toFixed(1)}T` : `$${v}B`} width={60} />
-                <Tooltip formatter={(v: unknown) => { const n = Number(v); return n >= 1000 ? `$${(n/1000).toFixed(2)}T` : `$${n.toFixed(0)}B`; }} contentStyle={{ fontSize: 12 }} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line type="monotone" dataKey="mc"     name="Market Cap"         stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="demand" name="Eff. T-Bill Demand" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
+        {/* Growth trajectory — stretches to match config card height */}
+        <div className="lg:col-span-2 flex flex-col">
+          <Card title="Growth Trajectory" className="flex-1 flex flex-col">
+            <div className="flex-1 min-h-0">
+              <ResponsiveContainer width="100%" height="100%" minHeight={220}>
+                <LineChart data={growth}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+                  <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `$${(v/1000).toFixed(1)}T` : `$${v}B`} width={60} />
+                  <Tooltip formatter={(v: unknown) => { const n = Number(v); return n >= 1000 ? `$${(n/1000).toFixed(2)}T` : `$${n.toFixed(0)}B`; }} contentStyle={{ fontSize: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Line type="monotone" dataKey="mc"     name="Market Cap"         stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="demand" name="Eff. T-Bill Demand" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </Card>
         </div>
       </div>
+
 
       {/* Marginal buyer analysis */}
       <Card title="Marginal Buyer Analysis">
         <div className="flex items-center gap-3 mb-3">
           <p className="text-xs text-gray-400 flex-1">
             Incremental T-bill demand vs estimated net new supply over projection horizon.
-            Net new T-bill supply ~$433B/yr (TBAC Q1 2026).
+            Net new T-bill supply ~$433B/yr (TBAC Q1 2026). Foreign and MMF estimates based on historical absorption ranges.
           </p>
           <span className={`text-xs font-semibold px-3 py-1 rounded-full ${buyerTag.color}`}>
             {buyerTag.label}
@@ -191,13 +183,13 @@ export default function DashboardPage() {
 
         <div className="space-y-2.5">
           {[
-            { label: "Net New Supply",     val: netNewSupply,  color: "bg-gray-300",    pct: 100          },
-            { label: "Foreign Holders",    val: 100 * cfg.horizonYears, color: "bg-slate-400",  pct: (100*cfg.horizonYears)/netNewSupply*100 },
-            { label: "Money Mkt Funds",    val: 125 * cfg.horizonYears, color: "bg-slate-500",  pct: (125*cfg.horizonYears)/netNewSupply*100 },
-            { label: "Stablecoins",        val: incDemand,     color: "bg-blue-500",    pct: pctOfSupply  },
+            { label: "Net New Supply",              val: netNewSupply,               color: "bg-gray-300",   pct: 100          },
+            { label: "Foreign CBs (~$75–125B/yr)",  val: 100 * cfg.horizonYears,     color: "bg-slate-400",  pct: (100*cfg.horizonYears)/netNewSupply*100 },
+            { label: "Money Mkt (~$100–150B/yr)",   val: 125 * cfg.horizonYears,     color: "bg-slate-500",  pct: (125*cfg.horizonYears)/netNewSupply*100 },
+            { label: "Stablecoins",                 val: incDemand,                  color: "bg-blue-500",   pct: pctOfSupply  },
           ].map(({ label, val, color, pct }) => (
             <div key={label} className="flex items-center gap-3">
-              <span className="text-xs text-gray-500 w-32 text-right shrink-0">{label}</span>
+              <span className="text-xs text-gray-500 w-36 text-right shrink-0">{label}</span>
               <div className="flex-1 h-6 bg-gray-100 rounded overflow-hidden">
                 <div
                   className={`h-full ${color} rounded flex items-center px-2 transition-all`}
@@ -226,8 +218,56 @@ export default function DashboardPage() {
         )}
       </Card>
 
-      {/* Scenario modelling (Bear/Base/Bull) */}
-      <ScenarioModellingCard liveMarketCapBillions={liveMarketCapBillions} />
+      {/* Model Reference */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card title="Long-Run Structural Model">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 font-mono text-xs text-blue-600 mb-4">
+            <p className="text-[10px] text-gray-400 font-sans mb-1">Ahmed &amp; Aldasoro — BIS WP 1270 (2025)</p>
+            ΔY = 100 × β × ln(S_new / S₀) × (1/λ) × (r / 0.72)
+          </div>
+          <div className="space-y-1.5">
+            {[
+              ["β (13-week)",   "−2.9858",       "text-emerald-700"],
+              ["S₀ (baseline)", "$300.8B",        "text-gray-700"],
+              ["λ (attenuation)", "50",           "text-gray-700"],
+              ["r_baseline",    "0.72 (72%)",     "text-gray-700"],
+              ["Effect horizon","≤ 13 weeks",     "text-gray-700"],
+            ].map(([k, v, c]) => (
+              <div key={k as string} className="flex justify-between text-xs">
+                <span className="text-gray-500">{k}</span>
+                <span className={`font-mono font-semibold ${c}`}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[10px] text-gray-400 leading-relaxed border-t border-gray-100 pt-2">
+            Captures a permanent yield shift. Log specification gives diminishing returns — each doubling of market cap adds the same bps compression.
+          </p>
+        </Card>
+
+        <Card title="Short-Run Flow Model">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 font-mono text-xs text-blue-600 mb-4">
+            <p className="text-[10px] text-gray-400 font-sans mb-1">Ahmed &amp; Aldasoro — BIS WP 1270 (2025)</p>
+            ΔY = α × Flow × (T_ref / T_exec) × (r / 0.60)
+          </div>
+          <div className="space-y-1.5">
+            {[
+              ["α Normal",    "0.714 bps/$1B",  "text-emerald-600"],
+              ["α Scarcity",  "1.429 bps/$1B",  "text-amber-600"],
+              ["α Crisis",    "2.143 bps/$1B",  "text-red-600"],
+              ["T_ref",       "5 days",         "text-gray-700"],
+              ["r_embedded",  "0.60 (60%)",     "text-gray-700"],
+            ].map(([k, v, c]) => (
+              <div key={k as string} className="flex justify-between text-xs">
+                <span className="text-gray-500">{k}</span>
+                <span className={`font-mono font-semibold ${c}`}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[10px] text-gray-400 leading-relaxed border-t border-gray-100 pt-2">
+            Short-lived effect — fades after execution. Positive ΔY = yields rise (sell pressure). SVB precedent: $3.3B shock → tens of bps spike.
+          </p>
+        </Card>
+      </div>
     </div>
   );
 }

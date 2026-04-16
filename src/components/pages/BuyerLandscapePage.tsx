@@ -35,7 +35,7 @@ const FINDINGS = [
   },
   {
     title: "Policy Sensitivity",
-    body: "If yield passes through to holders, adoption could accelerate 1.5–2.5×. The yield prohibition is a fiscal policy choice disguised as consumer protection.",
+    body: "If yield passes through to holders, adoption could accelerate significantly. Standard Chartered estimates a 1.42× uplift to $500B under full pass-through. The yield prohibition is a fiscal policy choice disguised as consumer protection.",
     color: "border-violet-500 bg-violet-50",
     titleColor: "text-violet-700",
   },

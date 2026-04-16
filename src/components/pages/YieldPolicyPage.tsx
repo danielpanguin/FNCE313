@@ -8,9 +8,8 @@ import type { OverviewConfig } from "@/types/dashboard";
 
 const TBILL_YIELD = 3.7; // current %
 const PRESETS = [
-  { label: "No Yield",          yieldBps: 0,   adoptionMult: 1.0 },
-  { label: "Activity Rewards",  yieldBps: 80,  adoptionMult: 1.2 },
-  { label: "Full Pass-Through", yieldBps: 300, adoptionMult: 2.0 },
+  { label: "No Yield",          yieldBps: 0,   adoptionMult: 1.0  },
+  { label: "Full Pass-Through", yieldBps: 300, adoptionMult: 1.42 },
 ];
 
 function StatBox({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
@@ -54,9 +53,6 @@ export default function YieldPolicyPage() {
     }));
   }, [cfg, adoptionMult]);
 
-  const bankDep = 17600;
-  const atRisk  = Math.min((yieldPct / 5) * adoptionMult * 3.5, 18);
-  const atRiskB = (bankDep * atRisk / 100 / 1000).toFixed(1);
 
   return (
     <div className="p-6 space-y-6">
@@ -97,11 +93,15 @@ export default function YieldPolicyPage() {
               <div>
                 <div className="flex justify-between mb-1">
                   <span className="text-xs text-gray-600">Adoption Multiplier</span>
-                  <span className="text-xs font-mono font-semibold text-violet-600">{adoptionMult.toFixed(1)}×</span>
+                  <span className="text-xs font-mono font-semibold text-violet-600">{adoptionMult.toFixed(2)}×</span>
                 </div>
                 <input type="range" min={100} max={350} step={5} value={Math.round(adoptionMult * 100)}
                   onChange={(e) => { setAdoptionMult(Number(e.target.value) / 100); setPreset(-1); }}
                   className="w-full accent-violet-600 cursor-pointer" />
+                <p className="text-[10px] text-gray-400 mt-1 leading-relaxed">
+                  Full Pass-Through uses 1.42× — Standard Chartered $500B estimate.
+                  Presets select both yield and multiplier together.
+                </p>
               </div>
               <hr className="border-gray-100" />
               <div>
@@ -128,11 +128,15 @@ export default function YieldPolicyPage() {
           </Card>
 
           <Card title="Issuer Economics">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3 mb-3">
               <StatBox label="No Yield Rev"    value={`$${issuerRevBase.toFixed(1)}B`}   color="text-gray-700" />
               <StatBox label="Policy Rev"      value={`$${issuerRevPolicy.toFixed(1)}B`} color="text-violet-600" />
               <StatBox label="To Holders"      value={`$${holderRev.toFixed(1)}B`}       color="text-blue-600" />
             </div>
+            <p className="text-[10px] text-gray-400 leading-relaxed border-t border-gray-100 pt-2">
+              Anchor: Tether reported ~$13B net profit in 2024 on ~$113B in reserves — a ~11.5% return.
+              Yield prohibition preserves this margin entirely for the issuer.
+            </p>
           </Card>
         </div>
 
@@ -174,14 +178,14 @@ export default function YieldPolicyPage() {
           {/* Deposit flight risk */}
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
             <p className="text-xs font-bold text-amber-700 mb-2">Deposit Flight Risk</p>
-            <div className="grid grid-cols-3 gap-4 mb-3">
-              <StatBox label="Est. at Risk" value={`$${atRiskB}T`} sub={`${atRisk.toFixed(1)}% of deposits`} color="text-amber-600" />
-              <StatBox label="ABA Worst Case" value="$6.6T" color="text-gray-500" />
-              <StatBox label="White House CEA" value="$531B" color="text-emerald-600" />
+            <div className="grid grid-cols-2 gap-4 mb-3">
+              <StatBox label="ABA Worst Case" value="$6.6T" sub="of deposits at risk" color="text-amber-600" />
+              <StatBox label="White House CEA" value="$531B" sub="lending protected (4.4%)" color="text-emerald-600" />
             </div>
             <p className="text-xs text-gray-500 leading-relaxed">
-              White House CEA (Apr 8, 2026): yield ban protects only $531B in lending (4.4%).
-              ABA counters with $6.6T deposit-flight risk. Reality depends on scale — which is exactly what this tool models.
+              ABA (2025): up to $6.6T in bank deposits could migrate to yield-bearing stablecoins if yield is permitted.
+              White House CEA (Apr 8, 2026) counters: the yield ban protects only $531B in bank lending — just 4.4% of deposits.
+              The vast gap between these estimates reflects genuine uncertainty about consumer substitution elasticity at scale.
             </p>
           </div>
         </div>

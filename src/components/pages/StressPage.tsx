@@ -113,7 +113,7 @@ export default function StressPage() {
           <div className="bg-red-50 border-l-4 border-red-500 rounded-r-xl p-4">
             <p className="text-xs font-bold text-red-600 mb-1">SVB / USDC Depeg — Mar 2023</p>
             <p className="text-xs text-gray-600 leading-relaxed">
-              $3.3B exposed → USDC hit $0.87 → 3M T-bill spiked ~20 bps.
+              $3.3B exposed → USDC hit $0.87 → short-end T-bill yields moved sharply higher by roughly tens of basis points.
               At current scale, an equivalent shock is{" "}
               <strong className="text-red-600">{svbX}×</strong> larger.
             </p>

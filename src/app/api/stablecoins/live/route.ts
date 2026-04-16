@@ -14,8 +14,7 @@ export async function GET() {
 
     let total = 0;
     for (const asset of peggedAssets) {
-      if (asset.pegType !== "peggedUSD" || asset.pegMechanism !== "fiat-backed") continue;
-      // Use the canonical top-level circulating figure — same field the chart endpoint aggregates
+      // Sum all stablecoins regardless of backing mechanism
       total += asset.circulating?.peggedUSD ?? 0;
     }
 

@@ -112,15 +112,70 @@ export default function ModelConfigPage() {
         </div>
       </Card>
 
-      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
-        <p className="text-xs font-bold text-gray-600 mb-2">Sources</p>
-        <ul className="text-xs text-gray-500 space-y-1.5 leading-relaxed">
-          <li>Ahmed, R., &amp; Aldasoro, I. (2025, May 28). <em>Stablecoins and safe asset prices.</em> BIS Working Paper No. 1270.</li>
-          <li>De la Horra, L. P., Perote, J., &amp; Vega, J. (2025). <em>Stablecoins as structural T-bill buyers.</em></li>
-          <li>GENIUS Act (2025) — reserve composition requirements for compliant stablecoin issuers.</li>
-          <li>U.S. Treasury TBAC Q1 2026 — net new T-bill issuance projections (~$433B/yr).</li>
-        </ul>
-      </div>
+      <Card title="Marginal Buyer Analysis — Assumptions">
+        <p className="text-xs text-gray-400 mb-4">
+          Inputs used to size stablecoin demand relative to estimated net new T-bill issuance.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                {["Assumption", "Value", "Rationale"].map((h) => (
+                  <th key={h} className="text-left py-2 px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ["Net new T-bill supply",        "~$433B/yr",          "TBAC Q1 2026 borrowing projections"],
+                ["Foreign CB absorption",        "~$75–125B/yr",       "Historical TICS data range (2020–2025)"],
+                ["Money market fund absorption", "~$100–150B/yr",      "ICI fund flow data (2020–2025)"],
+                ["Stablecoin effective demand",  "MC × effectiveShare","Model-derived; varies with reserve config"],
+                ["Effective reserve share",      "Direct + Indirect×LT","Configurable via Scenario Configuration"],
+              ].map(([param, val, note], i) => (
+                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
+                  <td className="py-2.5 px-3 text-gray-700 font-medium">{param}</td>
+                  <td className="py-2.5 px-3 font-mono font-semibold text-blue-700">{val}</td>
+                  <td className="py-2.5 px-3 text-gray-500">{note}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Card title="Data Sources">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                {["Source", "Data Used", "Accessed"].map((h) => (
+                  <th key={h} className="text-left py-2 px-3 text-[10px] font-bold uppercase tracking-wider text-gray-400">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ["Ahmed & Aldasoro, BIS WP 1270 (2025)",     "β coefficients, α values, model specification",   "May 2025"],
+                ["DeFi Llama — stablecoins.llama.fi",        "Live + historical stablecoin market cap",          "Live API"],
+                ["U.S. Treasury Fiscal Data API",            "13-week T-bill average interest rates",            "Live API"],
+                ["U.S. Treasury TBAC Q1 2026",               "Net new T-bill issuance (~$433B/yr)",              "Mar 2026"],
+                ["GENIUS Act (2025)",                         "Reserve composition mandates",                    "Feb 2025"],
+                ["Standard Chartered Research (2025)",       "1.42× adoption multiplier under yield pass-through","2025"],
+                ["White House CEA (Apr 8, 2026)",            "$531B lending protected estimate",                 "Apr 2026"],
+                ["American Bankers Association (ABA)",       "$6.6T deposit flight worst-case",                  "2025"],
+                ["Tether 2024 Annual Report",                "$13B net profit on ~$113B reserves",               "2025"],
+              ].map(([src, data, date], i) => (
+                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
+                  <td className="py-2.5 px-3 text-gray-700 font-medium">{src}</td>
+                  <td className="py-2.5 px-3 text-gray-500">{data}</td>
+                  <td className="py-2.5 px-3 font-mono text-gray-400 whitespace-nowrap">{date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 }
