@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchFredLatest, FRED_SERIES } from "@/lib/fredApi";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ResponsiveContainer } from "recharts";
 import Card from "@/components/ui/Card";
 import { BASELINE_MC } from "@/lib/calculations";
@@ -43,10 +44,20 @@ const FINDINGS = [
 
 export default function BuyerLandscapePage() {
   const [projectedMC, setProjectedMC] = useState(948);
+  const [mmfAssets, setMmfAssets]     = useState(3000); // $B, live from FRED WRMFNS
+  const [mmfDate, setMmfDate]         = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchFredLatest(FRED_SERIES.MMF_ASSETS)
+      .then((d) => { setMmfAssets(d.value); setMmfDate(d.date); })
+      .catch(() => { /* keep fallback */ });
+  }, []);
+
   const effDemand = projectedMC * 0.79; // ~79% reserve share
 
   const chartData = [
-    ...STATIC_BUYERS,
+    { name: "Money Mkt Funds", value: Math.round(mmfAssets) },
+    ...STATIC_BUYERS.filter((b) => b.name !== "Money Mkt Funds"),
     { name: "Stablecoins (Now)",       value: Math.round(BASELINE_MC * 0.79) },
     { name: "Stablecoins (Projected)", value: Math.round(effDemand)           },
   ];
@@ -59,6 +70,12 @@ export default function BuyerLandscapePage() {
       </div>
 
       <Card title="T-Bill Holdings by Buyer ($B)">
+        {mmfDate && (
+          <p className="text-[10px] text-gray-400 mb-3">
+            Money Mkt Funds: <span className="font-mono font-semibold text-emerald-600">${mmfAssets.toFixed(0)}B</span>
+            <span className="ml-1">· Live · FRED WRMFNS ({mmfDate})</span>
+          </p>
+        )}
         <div className="mb-4">
           <div className="flex justify-between mb-1">
             <span className="text-xs text-gray-600">Stablecoin Projected Market Cap</span>

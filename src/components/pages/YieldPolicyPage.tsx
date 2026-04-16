@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { fetchFredLatest, FRED_SERIES } from "@/lib/fredApi";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Card from "@/components/ui/Card";
 import { computeOverview, BASELINE_MC, DEFAULT_OVERVIEW } from "@/lib/calculations";
 import type { OverviewConfig } from "@/types/dashboard";
 
-const TBILL_YIELD = 3.7; // current %
+const TBILL_YIELD_FALLBACK = 3.7; // % fallback until FRED loads
 const PRESETS = [
   { label: "No Yield",          yieldBps: 0,   adoptionMult: 1.0  },
   { label: "Full Pass-Through", yieldBps: 300, adoptionMult: 1.42 },
@@ -27,6 +28,14 @@ export default function YieldPolicyPage() {
   const [yieldBps, setYieldBps] = useState(0);
   const [adoptionMult, setAdoptionMult] = useState(1.0);
   const [cfg, setCfg] = useState<OverviewConfig>(DEFAULT_OVERVIEW);
+  const [tbillYield, setTbillYield]     = useState(TBILL_YIELD_FALLBACK);
+  const [tbillYieldDate, setTbillYieldDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchFredLatest(FRED_SERIES.TBILL_RATE)
+      .then((d) => { setTbillYield(d.value); setTbillYieldDate(d.date); })
+      .catch(() => { /* keep fallback */ });
+  }, []);
 
   function applyPreset(i: number) {
     setPreset(i);
@@ -38,9 +47,9 @@ export default function YieldPolicyPage() {
   const withYield = useMemo(() => computeOverview({ ...cfg, projectedMC: cfg.projectedMC * adoptionMult }), [cfg, adoptionMult]);
 
   const es = baseline.effectiveShare;
-  const issuerRevBase   = cfg.projectedMC * es * TBILL_YIELD / 100;
+  const issuerRevBase   = cfg.projectedMC * es * tbillYield / 100;
   const yieldPct        = yieldBps / 100;
-  const issuerRevPolicy = cfg.projectedMC * adoptionMult * es * Math.max(TBILL_YIELD - yieldPct, 0) / 100;
+  const issuerRevPolicy = cfg.projectedMC * adoptionMult * es * Math.max(tbillYield - yieldPct, 0) / 100;
   const holderRev       = cfg.projectedMC * adoptionMult * es * yieldPct / 100;
 
   const growthData = useMemo(() => {
@@ -61,6 +70,13 @@ export default function YieldPolicyPage() {
           <h1 className="text-xl font-bold text-gray-900">Yield Policy Simulator</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             Models fiscal impact of yield pass-through to stablecoin holders. Currently prohibited under GENIUS Act §4(c).
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            T-bill yield: <span className="font-mono font-semibold text-blue-600">{tbillYield.toFixed(2)}%</span>
+            {tbillYieldDate
+              ? <span className="ml-1 text-emerald-600">· Live · FRED DTB3 ({tbillYieldDate})</span>
+              : <span className="ml-1 text-gray-400">· Fallback</span>
+            }
           </p>
         </div>
         {/* Policy presets */}

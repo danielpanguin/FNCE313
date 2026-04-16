@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { fetchFredLatest, FRED_SERIES } from "@/lib/fredApi";
 import dynamic from "next/dynamic";
 import Card from "@/components/ui/Card";
 import {
@@ -18,9 +19,22 @@ function bpsColor(v: number) {
 }
 
 export default function StressPage() {
-  const [mc, setMc]     = useState(1200);
-  const [execDays, setExecDays] = useState(5);
+  const [mc, setMc]         = useState(1200);
+  const [execDays, setExecDays]   = useState(5);
   const [reservePct, setReservePct] = useState(80);
+  const [rrp, setRrp]       = useState<number | null>(null);
+  const [rrpDate, setRrpDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchFredLatest(FRED_SERIES.RRP_BALANCE)
+      .then((d) => { setRrp(d.value); setRrpDate(d.date); })
+      .catch(() => { /* optional indicator, keep null */ });
+  }, []);
+
+  const rrpCondition = rrp === null ? null
+    : rrp > 500  ? { label: "Scarcity likely",  color: "text-amber-600" }
+    : rrp > 100  ? { label: "Normal likely",    color: "text-emerald-600" }
+    :              { label: "Crisis-adjacent",  color: "text-red-600" };
 
   const tRatio = Math.min(5 / execDays, 5.0);
   const rRatio = (reservePct / 100) / 0.60;
@@ -107,6 +121,21 @@ export default function StressPage() {
                 </div>
               ))}
             </div>
+            {rrp !== null && rrpCondition && (
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <p className="text-[10px] text-gray-400 mb-1 uppercase tracking-wider">RRP Balance · Live FRED</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">
+                    ${rrp.toFixed(0)}B
+                    {rrpDate && <span className="ml-1 text-gray-400">({rrpDate})</span>}
+                  </span>
+                  <span className={`text-xs font-semibold ${rrpCondition.color}`}>{rrpCondition.label}</span>
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1 leading-relaxed">
+                  RRP draining → normal; RRP elevated → scarcity; near zero + stress → crisis.
+                </p>
+              </div>
+            )}
           </Card>
 
           {/* SVB reference */}

@@ -36,7 +36,7 @@ export function formatBillions(value: number): string {
 
 const BETA_13W = -2.9858;
 const R_BASELINE_OVERVIEW = 0.72;
-const TBILL_OUT_BILLIONS = 6000; // ~$6T outstanding T-bills
+const TBILL_OUT_DEFAULT = 6000; // ~$6T outstanding T-bills (overridden by live FRED WMTSNS)
 
 export interface OverviewResult {
   effectiveShare: number;   // decimal (direct + indirect * lookThrough)
@@ -65,7 +65,8 @@ export function computeOverview(cfg: OverviewConfig): OverviewResult {
     100 *
     (1 / cfg.lambda) *
     (es / R_BASELINE_OVERVIEW);
-  const annualSavings = (Math.abs(deltaY) / 100) * (TBILL_OUT_BILLIONS / 100);
+  const tbillOut = cfg.tbillOutBillions ?? TBILL_OUT_DEFAULT;
+  const annualSavings = (Math.abs(deltaY) / 100) * (tbillOut / 100);
   return { effectiveShare: es, effectiveDemand: ed, deltaY, annualSavings };
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Card from "@/components/ui/Card";
 import {
@@ -11,6 +11,7 @@ import {
   formatBillions,
 } from "@/lib/calculations";
 import type { OverviewConfig } from "@/types/dashboard";
+import { fetchFredHistory, FRED_SERIES } from "@/lib/fredApi";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
@@ -19,7 +20,7 @@ import {
 const TreasuryYieldChart       = dynamic(() => import("./TreasuryYieldChart"),       { ssr: false });
 const StablecoinMarketCapChart = dynamic(() => import("./StablecoinMarketCapChart"),  { ssr: false });
 
-const NET_NEW_TBILL_PER_YR = 433; // $B/yr (TBAC Q1 2026)
+const NET_NEW_TBILL_FALLBACK = 433; // $B/yr fallback (TBAC Q1 2026)
 
 function StatCard({
   label, value, sub, accent = "bg-blue-50", valueColor = "text-gray-900",
@@ -38,6 +39,26 @@ function StatCard({
 export default function DashboardPage() {
   const [liveMarketCapBillions, setLiveMarketCapBillions] = useState<number | null>(null);
   const [cfg, setCfg] = useState<OverviewConfig>(DEFAULT_OVERVIEW);
+  const [tbillOut, setTbillOut]         = useState(6000);   // $B outstanding, live from FRED
+  const [netNewTbill, setNetNewTbill]   = useState(NET_NEW_TBILL_FALLBACK); // $B/yr
+  const [fredTbillDate, setFredTbillDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    // WMTSNS: T-bills outstanding weekly ($M). Fetch 60 obs (~1yr) for outstanding + YoY net new.
+    fetchFredHistory(FRED_SERIES.TBILL_OUT, 60)
+      .then((obs) => {
+        if (obs.length === 0) return;
+        const latestB = obs[0].value / 1000; // $M → $B
+        setTbillOut(latestB);
+        setFredTbillDate(obs[0].date);
+        setCfg((c) => ({ ...c, tbillOutBillions: latestB }));
+        if (obs.length >= 52) {
+          const yearAgoB = obs[51].value / 1000;
+          setNetNewTbill(+(latestB - yearAgoB).toFixed(0));
+        }
+      })
+      .catch(() => { /* silently keep fallback */ });
+  }, []);
 
   function clampReserves(changed: "direct" | "indirect", val: number) {
     setCfg((c) => {
@@ -54,7 +75,7 @@ export default function DashboardPage() {
   const overview = useMemo(() => computeOverview(cfg), [cfg]);
   const growth   = useMemo(() => computeGrowthTrajectory(cfg), [cfg]);
 
-  const netNewSupply = cfg.horizonYears * NET_NEW_TBILL_PER_YR;
+  const netNewSupply = cfg.horizonYears * netNewTbill;
   const incDemand    = overview.effectiveDemand - BASELINE_MC * overview.effectiveShare;
   const pctOfSupply  = (incDemand / netNewSupply) * 100;
 
@@ -76,7 +97,7 @@ export default function DashboardPage() {
         <StatCard label="Stablecoin Market Cap"    value={liveMarketCapBillions ? `$${liveMarketCapBillions.toFixed(1)}B` : "Loading…"}  sub={liveMarketCapBillions ? "Live · DeFi Llama" : "Fetching…"} />
         <StatCard label="Effective T-Bill Demand"  value={formatBillions(overview.effectiveDemand)}               sub={`At $${cfg.projectedMC >= 1000 ? (cfg.projectedMC/1000).toFixed(1)+"T" : cfg.projectedMC+"B"} projected MC`} accent="bg-emerald-50" />
         <StatCard label="Projected Yield Impact"   value={`${overview.deltaY >= 0 ? "+" : ""}${overview.deltaY.toFixed(1)} bps`} sub="13-week T-bill" accent="bg-amber-50" valueColor={overview.deltaY < 0 ? "text-emerald-600" : "text-red-600"} />
-        <StatCard label="Est. Annual Savings"      value={`$${overview.annualSavings.toFixed(1)}B/yr`}             sub="At $6T outstanding" accent="bg-violet-50" />
+        <StatCard label="Est. Annual Savings"      value={`$${overview.annualSavings.toFixed(1)}B/yr`}             sub={fredTbillDate ? `At $${tbillOut.toFixed(0)}B outstanding · FRED` : "At $6T outstanding"} accent="bg-violet-50" />
       </div>
 
       {/* Overview config + growth trajectory */}
@@ -174,7 +195,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3 mb-3">
           <p className="text-xs text-gray-400 flex-1">
             Incremental T-bill demand vs estimated net new supply over projection horizon.
-            Net new T-bill supply ~$433B/yr (TBAC Q1 2026). Foreign and MMF estimates based on historical absorption ranges.
+            Net new T-bill supply ~${netNewTbill.toFixed(0)}B/yr{fredTbillDate ? ` · Live FRED WMTSNS (${fredTbillDate})` : " (TBAC Q1 2026)"}. Foreign and MMF estimates based on historical absorption ranges.
           </p>
           <span className={`text-xs font-semibold px-3 py-1 rounded-full ${buyerTag.color}`}>
             {buyerTag.label}
