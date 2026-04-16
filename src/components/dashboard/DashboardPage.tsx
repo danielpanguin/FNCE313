@@ -82,9 +82,9 @@ export default function DashboardPage() {
   const pctOfSupply  = (incDemand / netNewSupply) * 100;
 
   const buyerTag =
-    pctOfSupply > 100 ? { label: "Dominant Buyer",  color: "bg-red-100 text-red-700"   } :
-    pctOfSupply > 50  ? { label: "Growing Buyer",   color: "bg-amber-100 text-amber-700"} :
-                        { label: "Minor Buyer",      color: "bg-gray-100 text-gray-600"  };
+    pctOfSupply > 100 ? { label: "Exceeds Supply",  color: "bg-red-100 text-red-700"    } :
+    pctOfSupply > 50  ? { label: "Dominant Buyer",  color: "bg-amber-100 text-amber-700"} :
+                        { label: "Growing Buyer",   color: "bg-emerald-100 text-emerald-700" };
 
   return (
     <div className="p-6 space-y-8">
